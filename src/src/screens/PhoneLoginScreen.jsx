@@ -1,6 +1,5 @@
 import React, { useState } from 'react';
-import { View, Text, TextInput, TouchableOpacity, KeyboardAvoidingView, ScrollView, Image } from 'react-native';
-// import { Icon } from 'react-native-elements';
+import { View, Text, TextInput, TouchableOpacity, KeyboardAvoidingView, ScrollView, Image, ActivityIndicator } from 'react-native';
 import { FontAwesome } from '@expo/vector-icons';
 import googleLogo from '../Images/google.png';
 import logo from '../Images/logo.png';
@@ -8,7 +7,7 @@ import axios from 'axios';
 import { Alert } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import CountryPicker from 'react-native-country-picker-modal';
-
+import LoadingIndicator from '../components/LoadingIndicator';
 
 const PhoneLogin = ({ navigation }) => {
     const [password, setPassword] = useState('');
@@ -18,12 +17,11 @@ const PhoneLogin = ({ navigation }) => {
     const [callingCode, setCallingCode] = useState('+977');
     const [isValid, setIsValid] = useState(true);
     const [isPickerVisible, setPickerVisible] = useState(false);
+    const [loading, setLoading] = useState(false); // Loading state
 
     // Phone number Validation
     const validatePhoneNumber = (text, callingCode) => {
-        console.log(callingCode, text)
         setPhoneNumber(`${callingCode}${text}`); // Combine calling code with phone number
-        // Basic phone number validation (checks for 10 digits)
         const phoneRegex = /^[0-9]{10}$/;
         setIsValid(phoneRegex.test(text)); // Check only the entered digits, without calling code
     };
@@ -31,38 +29,36 @@ const PhoneLogin = ({ navigation }) => {
     // Login Functionality
     const handleLogin = async () => {
         if (!phoneNumber || !password) {
-            Alert.alert("Error", "Please fill in both email and password.");
+            Alert.alert("Error", "Please fill in both phone number and password.");
             return;
-        } else {
+        }
 
-            try {
-                // console.log("Hello");
-                const response = await axios.post('http://192.168.1.4:6000/api/v1/users/login', {
-                    phoneNumber,
-                    password
-                });
+        setLoading(true); // Show loading spinner
 
-                if (response.data.success) {
-                    // Assuming your backend returns a token upon successful login
-                    Alert.alert("Success", "Login Successful!");
-                    navigation.navigate('Home');
+        try {
+            const response = await axios.post('http://192.168.1.6:6000/api/v1/users/login', {
+                phoneNumber,
+                password
+            });
 
-                }
-            } catch (error) {
-                Alert.alert("Error", "Invalid credentials");
+            if (response.data.success) {
+                Alert.alert("Success", "Login Successful!");
+                navigation.navigate('Home');
             }
+        } catch (error) {
+            Alert.alert("Error", "Invalid credentials");
+        } finally {
+            setLoading(false); // Hide loading spinner
         }
     };
 
-    const handleforgotpassword = async () => {
+    const handleForgotPassword = async () => {
         navigation.navigate('PhoneForgotPassword');
     }
 
     return (
         <SafeAreaView className="flex-1 bg-white">
-            <KeyboardAvoidingView
-                className="flex-1"
-            >
+            <KeyboardAvoidingView className="flex-1">
                 <ScrollView
                     contentContainerStyle={{ flexGrow: 1, justifyContent: 'center', paddingHorizontal: 16 }}
                     showsVerticalScrollIndicator={false}
@@ -110,7 +106,7 @@ const PhoneLogin = ({ navigation }) => {
                         )}
 
                         {/* Password Input with Show/Hide */}
-                        <View className="border border-borders rounded-lg w-full py-3 px-4 mb-3 flex-row items-center">
+                        <View className="border border-borders rounded-lg w-full py-1 px-4 mb-3 flex-row items-center">
                             <TextInput
                                 placeholder="Enter Your Password"
                                 className="flex-1"
@@ -128,7 +124,7 @@ const PhoneLogin = ({ navigation }) => {
                         </View>
 
                         {/* Forgot Password */}
-                        <TouchableOpacity onPress={handleforgotpassword}>
+                        <TouchableOpacity onPress={handleForgotPassword}>
                             <Text className="text-blue-500 underline text-right mb-5">Forgot Password?</Text>
                         </TouchableOpacity>
 
@@ -152,7 +148,7 @@ const PhoneLogin = ({ navigation }) => {
                         </View>
 
                         {/* Social Login Buttons */}
-                        <TouchableOpacity className="bg-blue-500 w-full py-3 rounded-lg flex-row items-center mb-3" onPress={() => navigation.navigate('Signup')}>
+                        <TouchableOpacity className="bg-blue-500 w-full py-3 rounded-lg flex-row items-center mb-3" onPress={() => navigation.navigate('Login')}>
                             <View className="w-1/6 flex items-center">
                                 <FontAwesome name="envelope" size={30} color="white" />
                             </View>
@@ -160,7 +156,6 @@ const PhoneLogin = ({ navigation }) => {
                                 <Text className="text-white text-center text-lg font-semibold">Continue with Email</Text>
                             </View>
                         </TouchableOpacity>
-
 
                         <TouchableOpacity className="bg-google w-full py-3 rounded-lg flex-row items-center mb-3 border border-gray-400">
                             <View className="w-1/6 flex items-center">
@@ -174,6 +169,24 @@ const PhoneLogin = ({ navigation }) => {
                             </View>
                         </TouchableOpacity>
 
+                        {/* Loading Indicator */}
+                        {loading && (
+                <View
+                    style={{
+                        position: 'absolute',
+                        top: 0,
+                        bottom: 0,
+                        left: 0,
+                        right: 0,
+                        justifyContent: 'center',
+                        alignItems: 'center',
+                        backgroundColor: 'rgba(0, 0, 0, 0.5)',
+                        zIndex: 10,
+                    }}
+                >       
+                <LoadingIndicator />
+                </View>
+            )}
                     </View>
                 </ScrollView>
             </KeyboardAvoidingView>

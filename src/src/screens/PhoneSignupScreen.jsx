@@ -11,12 +11,12 @@ import axios from 'axios';
 
 
 
-const PhoneSignupScreen = ({ navigation }) => {
+const PhoneSignup = ({ navigation }) => {
     const [firstName, setFirstName] = useState('');
     const [lastName, setLastName] = useState('');
     const [password, setPassword] = useState('');
     const [showPassword, setShowPassword] = useState(false);
-    const [phoneNumber, setPhoneNumber] = useState('');
+    const [contact, setcontact] = useState('');
     const [countryCode, setCountryCode] = useState('NP');
     const [callingCode, setCallingCode] = useState('+977');
     const [isValid, setIsValid] = useState(true);
@@ -62,9 +62,9 @@ const PhoneSignupScreen = ({ navigation }) => {
     };
 
     // Phone number validation
-    const validatePhoneNumber = (text, callingCode) => {
+    const validatecontact = (text, callingCode) => {
         console.log(callingCode, text)
-        setPhoneNumber(`${callingCode}${text}`); // Combine calling code with phone number
+        setcontact(`${callingCode}${text}`); // Combine calling code with phone number
         // Basic phone number validation (checks for 10 digits)
         const phoneRegex = /^[0-9]{10}$/;
         setIsValid(phoneRegex.test(text)); // Check only the entered digits, without calling code
@@ -73,7 +73,7 @@ const PhoneSignupScreen = ({ navigation }) => {
     const registerMutation = useMutation({
         mutationKey: "Register-user",
         mutationFn: async (userdata) => {
-            return axios.post('http://192.168.1.4:6000/api/v1/users/register/sendMobileOTP', userdata, {
+            return axios.post('http://192.168.1.6:6000/api/v1/users/register/sendMobileOTP', userdata, {
                 headers: {
                     'Content-Type': 'application/json',
                 },
@@ -82,8 +82,8 @@ const PhoneSignupScreen = ({ navigation }) => {
 
         onSuccess: async (res) => {
             const token = res.data.data.token;
-            const userData = { token, phoneNumber };
-            console.log("Token in frontend", token, phoneNumber);
+            const userData = { token, contact };
+            console.log("Token in frontend", token, contact);
             await navigation.navigate("PhoneConfirmation", userData);
         },
 
@@ -107,14 +107,14 @@ const PhoneSignupScreen = ({ navigation }) => {
 
     const handleSignup = () => {
 
-        if (!firstName || !lastName || !phoneNumber || !password) {
+        if (!firstName || !lastName || !contact || !password) {
             Alert.alert("Error", "Please fill all the fields");
         }
         else {
             const userdata = {
                 firstName,
                 lastName,
-                phoneNumber,
+                contact,
                 password,
             };
 
@@ -192,8 +192,8 @@ const PhoneSignupScreen = ({ navigation }) => {
                                 className="flex-1 text-lg py-1 px-2"
                                 placeholder="Enter your mobile number"
                                 keyboardType="numeric"
-                                value={phoneNumber.replace(`${callingCode}`, '')}  // Display number without `+` and calling code
-                                onChangeText={(text) => validatePhoneNumber(text, callingCode)}
+                                value={contact.replace(`${callingCode}`, '')}  // Display number without `+` and calling code
+                                onChangeText={(text) => validatecontact(text, callingCode)}
                             />
                         </View>
                         {!isValid && (
@@ -201,13 +201,13 @@ const PhoneSignupScreen = ({ navigation }) => {
                         )}
 
                         {/* Password Input */}
-                        <View className="border border-borders rounded-lg w-full py-3 px-4 mb-3 flex-row items-center">
+                        <View className="border border-borders rounded-lg w-full py-1 px-4 mb-3 flex-row items-center">
                             <TextInput
                                 placeholder="Enter Your Password"
                                 className="flex-1"
                                 secureTextEntry={!showPassword}
                                 value={password}
-                                onChangeText={validatePassword}
+                                onChangeText={setPassword}
                             />
                             <TouchableOpacity onPress={() => setShowPassword(!showPassword)}>
                                 <FontAwesome
@@ -272,4 +272,4 @@ const PhoneSignupScreen = ({ navigation }) => {
     );
 };
 
-export default PhoneSignupScreen;
+export default PhoneSignup;

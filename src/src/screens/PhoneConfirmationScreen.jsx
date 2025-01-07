@@ -1,5 +1,5 @@
 import React, { useState, useRef } from 'react';
-import { View, Text, TextInput, TouchableOpacity } from 'react-native';
+import { View, Text, TextInput, TouchableOpacity, ActivityIndicator } from 'react-native';
 import { useMutation } from "@tanstack/react-query";
 import axios from "axios";
 import { Alert } from 'react-native';
@@ -15,25 +15,25 @@ const PhoneConfirmation = ({ route, navigation }) => {
         }
     };
 
-    const { token, phoneNumber } = route.params;
-    const [isSendVisible, setIsSendVisible] = useState(true); // "Send code" button is initially visible
-    const [isResendVisible, setIsResendVisible] = useState(false); // "Resend code" button is initially hidden
+    const { token, contact } = route.params;
+    // const [isSendVisible, setIsSendVisible] = useState(true); // "Send code" button is initially visible
+    // const [isResendVisible, setIsResendVisible] = useState(false); // "Resend code" button is initially hidden
     const [otpSent, setOtpSent] = useState(false);
 
-    console.log(token, phoneNumber);
+    console.log(token, contact);
     // Mutation to send or resend OTP
     const sendOtpMutation = useMutation({
-        mutationFn: async ({ phoneNumber, token, isResend }) => {
+        mutationFn: async ({ contact, token, isResend }) => {
 
             // Use different endpoints depending on whether it's a send or resend action
             const endpoint = isResend
-                ? 'http://192.168.1.4:6000/api/v1/users/register/verifyMobileOTP/resendMobileOTP'
-                : 'http://192.168.1.4:6000/api/v1/users/register/sendMobileOTP';
+                ? 'http://192.168.1.6:6000/api/v1/users/register/verifyMobileOTP/resendMobileOTP'
+                : 'http://192.168.1.6:6000/api/v1/users/register/sendMobileOTP';
 
 
             return axios.post(
                 endpoint,
-                { phoneNumber, token },
+                { contact, token },
                 {
                     headers: {
                         'Content-Type': 'application/json',
@@ -56,19 +56,19 @@ const PhoneConfirmation = ({ route, navigation }) => {
 
     // Function to send OTP
     const sendOTP = async (isResend = false) => {
-        if (phoneNumber && token) {
-            sendOtpMutation.mutate({ phoneNumber, token,  isResend});
+        if (contact && token) {
+            sendOtpMutation.mutate({ contact, token, isResend });
 
 
-            setIsSendVisible(false); // Hide the "Send code" button after pressing it
-            setIsResendVisible(true); // Show the "Resend code" button after pressing "Send code"
+            // setIsSendVisible(false); // Hide the "Send code" button after pressing it
+            // setIsResendVisible(true); // Show the "Resend code" button after pressing "Send code"
         }
     };
 
     const verifyOtpMutation = useMutation({
         mutationFn: async (userdata) => {
             return axios.post(
-                'http://192.168.1.4:6000/api/v1/users/register/verifyMobileOTP', // Replace with your actual verification endpoint
+                'http://192.168.1.6:6000/api/v1/users/register/verifyMobileOTP', // Replace with your actual verification endpoint
                 userdata,
                 {
                     headers: {
@@ -80,7 +80,7 @@ const PhoneConfirmation = ({ route, navigation }) => {
         onSuccess: (response) => {
             console.log("OTP verified successfully:");
             Alert.alert("Success", "Registration Successful!");
-            navigation.navigate("Login");
+            navigation.navigate("PhoneLogin");
         },
         onError: (error) => {
             console.error("Error verifying OTP:", error.response?.data || error.message);
@@ -98,7 +98,11 @@ const PhoneConfirmation = ({ route, navigation }) => {
         // Call the verify OTP mutation
         verifyOtpMutation.mutate(userdata);
     };
-
+    if (sendOtpMutation.isPending) {
+        return <View>
+            <ActivityIndicator size="large" color="#0000ff" />
+        </View>
+    }
     return (
         <View className="flex-1 justify-center items-center px-5 bg-white">
             <Text className="text-2xl font-bold text-center mb-4">Enter OTP</Text>
@@ -127,23 +131,15 @@ const PhoneConfirmation = ({ route, navigation }) => {
 
             <View>
                 {/* "Send code" button */}
-                {isSendVisible && (
-                    <TouchableOpacity onPress={() => sendOTP(false)}>
-                        <Text className="text-blue-500 font-bold text-sm mb-8">Send code</Text>
-                    </TouchableOpacity>
-                )}
 
-                {/* "Resend code" button */}
-                {isResendVisible && (
-                    <View>
-                        <Text className="text-center font-semibold text-gray-500 text-sm mb-9">
-                            A 4-digit code was sent to your Phone.
-                        </Text>
-                        <TouchableOpacity onPress={() => sendOTP(true)} accessible={true} accessibilityLabel="Resend code">
-                            <Text className="text-center text-blue-500 font-bold text-sm mb-8">Resend code</Text>
-                        </TouchableOpacity>
-                    </View>
-                )}
+                <View>
+                    <Text className="text-center font-semibold text-gray-500 text-sm mb-9">
+                        A 4-digit code was sent to your Phone.
+                    </Text>
+                    <TouchableOpacity onPress={() => sendOTP(true)} accessible={true} accessibilityLabel="Resend code">
+                        <Text className="text-center text-blue-500 font-bold text-sm mb-8">Resend code</Text>
+                    </TouchableOpacity>
+                </View>
 
             </View>
 

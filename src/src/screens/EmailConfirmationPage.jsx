@@ -3,6 +3,8 @@ import { View, Text, TextInput, TouchableOpacity } from 'react-native';
 import { useMutation } from "@tanstack/react-query";
 import axios from "axios";
 import { Alert } from 'react-native';
+import BASE_URL from '../config/requiredIP';
+
 
 const EmailConfirmation = ({ route, navigation }) => {
     const [code, setCode] = useState(""); // Store the entire code
@@ -27,8 +29,11 @@ const EmailConfirmation = ({ route, navigation }) => {
 
             // Use different endpoints depending on whether it's a send or resend action
             const endpoint = isResend
-                ? 'http://192.168.1.4:6000/api/v1/users/register/verifyOTP/resendOTPCode'
-                : 'http://192.168.1.4:6000/api/v1/users/register/sendEmailOTP';
+                ? `${BASE_URL}/api/v1/users/register/verifyOTP/resendOTPCode`
+                // ? 'http://192.168.1.6:6000/api/v1/users/register/verifyOTP/resendOTPCode'
+                : `${BASE_URL}/api/v1/users/register/sendEmailOTP`;
+                // : 'http://192.168.1.6:6000/api/v1/users/register/sendEmailOTP';
+                // `${BASE_URL}/api/v1/users/login`
 
 
             return axios.post(
@@ -41,6 +46,7 @@ const EmailConfirmation = ({ route, navigation }) => {
                 }
             );
         },
+        
         onSuccess: (response) => {
             console.log("OTP sent successfully:");
             Alert.alert("Success", "OTP sent to your email address.");
@@ -68,7 +74,8 @@ const EmailConfirmation = ({ route, navigation }) => {
     const verifyOtpMutation = useMutation({
         mutationFn: async (userdata) => {
             return axios.post(
-                'http://192.168.1.4:6000/api/v1/users/register/verifyOTP', // Replace with your actual verification endpoint
+                `${BASE_URL}/api/v1/users/register/verifyOTP`, // Replace with your actual verification endpoint
+                // 'http://192.168.1.6:6000/api/v1/users/register/verifyOTP', // Replace with your actual verification endpoint
                 userdata,
                 {
                     headers: {

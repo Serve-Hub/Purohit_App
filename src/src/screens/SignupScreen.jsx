@@ -7,11 +7,11 @@ import logo from '../Images/logo.png';
 import axios from "axios";
 import { useMutation } from "@tanstack/react-query";
 import { SafeAreaView } from 'react-native-safe-area-context';
-
+import BASE_URL from '../config/requiredIP';
 import { Alert } from 'react-native';
 
 
-const SignupPage = ({ navigation }) => {
+const Signup = ({ navigation }) => {
     const [firstName, setFirstName] = useState('');
     const [lastName, setLastName] = useState('');
     const [email, setEmail] = useState('');
@@ -71,7 +71,7 @@ const SignupPage = ({ navigation }) => {
     const registerMutation = useMutation({
         mutationKey: "Register-user",
         mutationFn: async (userdata) => {
-            return axios.post('http://192.168.1.4:6000/api/v1/users/register', userdata, {
+            return axios.post(`${BASE_URL}/api/v1/users/register`, userdata, {
                 headers: {
                     'Content-Type': 'application/json',
                 },
@@ -177,14 +177,14 @@ const SignupPage = ({ navigation }) => {
                             {emailError ? <Text className="text-error-message text-sm">{emailError}</Text> : null}
                         </View>
 
-                        {/* Password Input */}
-                        <View className="border border-gray-300 rounded-lg w-full py-3 px-4 mb-3 flex-row items-center">
+                        {/* Password Input with Show/Hide */}
+                        <View className="border border-borders rounded-lg w-full py-1 px-4 mb-3 flex-row items-center">
                             <TextInput
                                 placeholder="Enter Your Password"
                                 className="flex-1"
                                 secureTextEntry={!showPassword}
                                 value={password}
-                                onChangeText={validatePassword}
+                                onChangeText={setPassword}
                             />
                             <TouchableOpacity onPress={() => setShowPassword(!showPassword)}>
                                 <FontAwesome
@@ -255,4 +255,4 @@ const SignupPage = ({ navigation }) => {
     );
 };
 
-export default SignupPage;
+export default Signup;

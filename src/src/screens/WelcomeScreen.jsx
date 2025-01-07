@@ -2,7 +2,7 @@ import React from 'react';
 import { View, Text, TouchableOpacity, Image } from 'react-native';
 import logo from '../Images/logo.png';
 
-const WelcomeScreen = ({ navigation }) => {
+const Welcome = ({ navigation }) => {
   return (
     <View className="flex-1 items-center justify-center bg-white px-6">
       {/* Logo */}
@@ -28,4 +28,4 @@ const WelcomeScreen = ({ navigation }) => {
   );
 };
 
-export default WelcomeScreen;
+export default Welcome;
