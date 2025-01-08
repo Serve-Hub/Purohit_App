@@ -16,7 +16,7 @@ import { TabView, SceneMap, TabBar } from "react-native-tab-view";
 import DateTimePicker from "@react-native-community/datetimepicker";
 import * as ImagePicker from "expo-image-picker";
 import RNPickerSelect from 'react-native-picker-select';
-import data from './address';
+import data from "../config/address";
 
 const initialLayout = { width: Dimensions.get('window').width };
 
