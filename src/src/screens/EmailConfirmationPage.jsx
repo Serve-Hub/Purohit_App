@@ -4,6 +4,8 @@ import { useMutation } from "@tanstack/react-query";
 import axios from "axios";
 import { Alert } from 'react-native';
 import BASE_URL from '../config/requiredIP';
+import { verificationToken } from '../constants/Token';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 
 const EmailConfirmation = ({ route, navigation }) => {
@@ -23,6 +25,7 @@ const EmailConfirmation = ({ route, navigation }) => {
     const [otpSent, setOtpSent] = useState(false);
 
     console.log(token, email);
+
     // Mutation to send or resend OTP
     const sendOtpMutation = useMutation({
         mutationFn: async ({ email, token, isResend }) => {
@@ -32,9 +35,8 @@ const EmailConfirmation = ({ route, navigation }) => {
                 ? `${BASE_URL}/api/v1/users/register/verifyOTP/resendOTPCode`
                 // ? 'http://192.168.1.6:6000/api/v1/users/register/verifyOTP/resendOTPCode'
                 : `${BASE_URL}/api/v1/users/register/sendEmailOTP`;
-                // : 'http://192.168.1.6:6000/api/v1/users/register/sendEmailOTP';
-                // `${BASE_URL}/api/v1/users/login`
-
+            // : 'http://192.168.1.6:6000/api/v1/users/register/sendEmailOTP';
+            // `${BASE_URL}/api/v1/users/login`
 
             return axios.post(
                 endpoint,
@@ -46,11 +48,13 @@ const EmailConfirmation = ({ route, navigation }) => {
                 }
             );
         },
-        
-        onSuccess: (response) => {
+
+        onSuccess: async (response) => {
             console.log("OTP sent successfully:");
             Alert.alert("Success", "OTP sent to your email address.");
             // Set the flag to true after sending OTP
+            // await AsyncStorage.setItem(verificationToken, response.data.token); // Store token in async storage
+            // console.log(response.data.token); // Console the token
             setOtpSent(true);
         },
         onError: (error) => {
@@ -63,8 +67,7 @@ const EmailConfirmation = ({ route, navigation }) => {
     // Function to send OTP
     const sendOTP = async (isResend = false) => {
         if (email && token) {
-            sendOtpMutation.mutate({ email, token,  isResend});
-
+            sendOtpMutation.mutate({ email, token, isResend });
 
             setIsSendVisible(false); // Hide the "Send code" button after pressing it
             setIsResendVisible(true); // Show the "Resend code" button after pressing "Send code"
@@ -99,7 +102,7 @@ const EmailConfirmation = ({ route, navigation }) => {
     const handleSubmit = async () => {
         const userdata = {
             otp: code,
-            token: token,
+            token: await AsyncStorage.getItem(verificationToken), // Retrieve the token from async storage
         };
 
         // Call the verify OTP mutation

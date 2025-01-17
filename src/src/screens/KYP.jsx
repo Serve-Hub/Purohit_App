@@ -16,15 +16,19 @@ import { TabView, SceneMap, TabBar } from "react-native-tab-view";
 import DateTimePicker from "@react-native-community/datetimepicker";
 import * as ImagePicker from "expo-image-picker";
 import RNPickerSelect from 'react-native-picker-select';
-import data from "../config/address";
+import data from '../config/address';
+import BASE_URL from '../config/requiredIP';
+import axios from 'axios';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import { userToken, verificationToken } from '../constants/Token';
 
 const initialLayout = { width: Dimensions.get('window').width };
 
 const KYCForm = () => {
   const [formData, setFormData] = useState({
     personalInfo: {
-      name: "",
-      email: "",
+      // name: "",
+      // email: "",
       phone: "",
       dob: "",
     },
@@ -42,8 +46,8 @@ const KYCForm = () => {
       experience: "",
       qualification: "",
       institute: "",
-      service: "",
-      language: "",
+      // service: "",
+      // language: "",
     },
     documentInfo: {
       citizenshipFront: null,
@@ -64,8 +68,8 @@ const KYCForm = () => {
 
   const validateForm = () => {
     const requiredFields = [
-      formData.personalInfo?.name,
-      formData.personalInfo?.email,
+      // formData.personalInfo?.name,
+      // formData.personalInfo?.email,
       formData.personalInfo?.phone,
       formData.personalInfo?.dob,
 
@@ -80,15 +84,14 @@ const KYCForm = () => {
       formData.educationInfo?.experience,
       formData.educationInfo?.qualification,
       formData.educationInfo?.institute,
-      formData.educationInfo?.service,
-      formData.educationInfo?.language,
+      // formData.educationInfo?.service,
+      // formData.educationInfo?.language,
       formData.documentInfo?.citizenshipFront,
       formData.documentInfo?.citizenshipBack,
       formData.documentInfo?.certificate,
     ];
 
     if (requiredFields.some(field => !field)) {
-      Alert.alert("Error", "Please fill all the fields");
       return false;
     }
 
@@ -152,31 +155,137 @@ const KYCForm = () => {
           pmAddress: prevFormData.addressInfo.address,
         },
       };
-      console.log("Updated Form Data", updatedFormData);
+      // console.log("Updated Form Data", updatedFormData);
       return updatedFormData;
     });
   };
 
-
-  const handleSubmit = () => {
-    const dobValidationResult = validateDOB(formData.personalInfo.dob);
-    if (dobValidationResult !== true) {
-      // console.log("Form is invalid");
-      console.log("Date of Birth Error:", dobValidationResult);
-      Alert.alert("Error", dobValidationResult);
-      console.log("Form Data", formData);
-      return;
-    }
-
-    if (validateForm()) {
-      // Proceed with form submission
-      console.log("Form is valid");
-      console.log("Form Data", formData);
-    } else {
-      console.log("Form is invalid");
-      console.log("Form Data", formData);
+  // const convertImageToBlob = async (imageUri) => {
+  //   try {
+  //     const response = await fetch(imageUri);
+  //     const blob = await response.blob();
+  //     return blob;
+  //   } catch (error) {
+  //     console.error("Error converting image to blob:", error);
+  //   }
+  // };
+  
+  const handleSubmit = async () => {
+    try {
+      // Validate the form
+      const isFormValid = validateForm();
+      if (!isFormValid) {
+        Alert.alert("Error", "Please fill all the fields");
+        return;
+      }
+  
+      // Validate DOB
+      const dobValidationResult = validateDOB(formData.personalInfo.dob);
+      if (dobValidationResult !== true) {
+        Alert.alert("Error", dobValidationResult); // If DOB is invalid, show the error
+        return;
+      }
+  
+      // Format the date of birth
+      const dob = new Date(formData.personalInfo.dob);
+      const formattedDob = {
+        day: dob.getUTCDate(),
+        month: dob.getUTCMonth() + 1,
+        year: dob.getUTCFullYear(),
+      };
+  
+      // Get the token from AsyncStorage
+      const token = await AsyncStorage.getItem("userToken");
+      if (!token) {
+        Alert.alert("Error", "Authentication token is missing!");
+        return;
+      }
+  
+      const requestData = new FormData();
+  
+      // Personal Info
+      requestData.append("phoneNumber", formData.personalInfo.phone);
+      requestData.append("day", formattedDob.day);
+      requestData.append("month", formattedDob.month);
+      requestData.append("year", formattedDob.year);
+  
+      // Address Info
+      requestData.append("province", formData.addressInfo.province);
+      requestData.append("district", formData.addressInfo.district);
+      requestData.append("municipality", formData.addressInfo.municipality);
+      requestData.append("tolAddress", formData.addressInfo.address);
+      requestData.append("pmProvince", formData.addressInfo.pmProvince);
+      requestData.append("pmDistrict", formData.addressInfo.pmDistrict);
+      requestData.append("pmMun", formData.addressInfo.pmMunicipality);
+      requestData.append("pmToladdress", formData.addressInfo.pmAddress);
+  
+      // Education Info
+      requestData.append("qualification", formData.educationInfo.qualification);
+      requestData.append("experience", formData.educationInfo.experience);
+      requestData.append("institution", formData.educationInfo.institute);
+  
+      // Append image URIs instead of converting to Blob
+      if (formData.documentInfo.citizenshipFront) {
+        const frontUri = formData.documentInfo.citizenshipFront.uri;
+        requestData.append("citizenshipFrontPhoto", { uri: frontUri, name: "citizenshipFront.jpg", type: "image/jpeg" });
+      }
+  
+      if (formData.documentInfo.citizenshipBack) {
+        const backUri = formData.documentInfo.citizenshipBack.uri;
+        requestData.append("citizenshipBackPhoto", { uri: backUri, name: "citizenshipBack.jpg", type: "image/jpeg" });
+      }
+  
+      if (formData.documentInfo.certificate) {
+        const certificateUri = formData.documentInfo.certificate.uri;
+        requestData.append("qcertificate", { uri: certificateUri, name: "certificate.jpg", type: "image/jpeg" });
+      }
+  
+      // Log FormData contents (including image URIs)
+      const jsonifyFormData = (formData) => {
+        const jsonObject = {};
+        formData.forEach((value, key) => {
+          if (value instanceof Object && value.uri) {
+            jsonObject[key] = {
+              uri: value.uri || "unknown",
+              name: value.name || "unknown",
+              type: value.type || "unknown",
+            };
+          } else {
+            jsonObject[key] = value;
+          }
+        });
+        return jsonObject;
+      };
+  
+      // Log FormData as JSON
+      console.log("FormData JSON:", JSON.stringify(jsonifyFormData(requestData), null, 2));
+  
+      // Make the API call
+      const response = await axios.post(
+        `${BASE_URL}/api/v1/kyp/fillKYP`,
+        // "http://192.168.1.64:6000/api/v1/kyp/fillKYP",
+        requestData,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "multipart/form-data",
+          },
+        }
+      );
+  
+      // Handle the response
+      if (response.data?.success) {
+        Alert.alert("Success", "Purohit added successfully!");
+      } else {
+        Alert.alert("Error", response.data?.message || "Something went wrong!");
+      }
+    } catch (error) {
+      console.error("Error submitting form:", error);
+      Alert.alert("Error", error.response?.data?.message ||"Something went wrong!");
     }
   };
+
+  // console.log(formData.personalInfo.dob);
 
   const pickMedia = async (field) => {
     const result = await ImagePicker.launchImageLibraryAsync({
@@ -220,22 +329,22 @@ const KYCForm = () => {
       case 'personalInfo':
         return (
           <ScrollView style={styles.scene}>
-            <Text style={styles.inputLabel}>Full Name</Text>
-            <TextInput
-              style={styles.input}
-              placeholder="Enter your full name"
-              value={formData.personalInfo.name}
-              onChangeText={(text) => handleInputChange("personalInfo", "name", text)}
-            />
+            {/* <Text style={styles.inputLabel}>Full Name</Text>
+              <TextInput
+                style={styles.input}
+                placeholder="Enter your full name"
+                value={formData.personalInfo.name}
+                onChangeText={(text) => handleInputChange("personalInfo", "name", text)}
+              />
 
-            <Text style={styles.inputLabel}>Email</Text>
-            <TextInput
-              style={styles.input}
-              placeholder="Enter your email"
-              value={formData.personalInfo.email}
-              onChangeText={(text) => handleInputChange("personalInfo", "email", text)}
-              keyboardType="email-address"
-            />
+              <Text style={styles.inputLabel}>Email</Text>
+              <TextInput
+                style={styles.input}
+                placeholder="Enter your email"
+                value={formData.personalInfo.email}
+                onChangeText={(text) => handleInputChange("personalInfo", "email", text)}
+                keyboardType="email-address"
+              /> */}
 
             <Text style={styles.inputLabel}>Phone Number</Text>
             <TextInput
@@ -258,6 +367,7 @@ const KYCForm = () => {
                   : "Select a date"}
               </Text>
               <Button title="Select Date" onPress={() => setShowDatePicker(true)} />
+
             </View>
             {showDatePicker && (
               <DateTimePicker
@@ -428,7 +538,7 @@ const KYCForm = () => {
               value={formData.educationInfo.institute}
               onChangeText={(text) => handleInputChange("educationInfo", "institute", text)}
             />
-            <Text style={styles.inputLabel}>Services Offered</Text>
+            {/* <Text style={styles.inputLabel}>Services Offered</Text>
             <TextInput
               style={styles.input}
               placeholder="Enter your offered services"
@@ -441,7 +551,7 @@ const KYCForm = () => {
               placeholder="Enter your known languages"
               value={formData.educationInfo.language}
               onChangeText={(text) => handleInputChange("educationInfo", "language", text)}
-            />
+            /> */}
           </ScrollView>
         );
 

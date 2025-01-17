@@ -9,6 +9,8 @@ import { useMutation } from "@tanstack/react-query";
 import { SafeAreaView } from 'react-native-safe-area-context';
 import BASE_URL from '../config/requiredIP';
 import { Alert } from 'react-native';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import { verificationToken } from '../constants/Token';
 
 
 const Signup = ({ navigation }) => {
@@ -81,6 +83,7 @@ const Signup = ({ navigation }) => {
         onSuccess: async (res) => {
             const token = res.data.data.token;
             const userData = { token, email };
+            await AsyncStorage.setItem(verificationToken, token);
             console.log("Token in frontend" ,token, email);
             await navigation.navigate("EmailConfirmation", userData);
         },
@@ -103,7 +106,7 @@ const Signup = ({ navigation }) => {
 
 
 
-    const handleSignup = () => {
+    const handleSignup = async() => {
 
         if (!firstName || !lastName || !email || !password) {
             Alert.alert("Error", "Please fill all the fields");
@@ -120,6 +123,8 @@ const Signup = ({ navigation }) => {
             if (!firstNameError && !lastNameError && !emailError && !passwordError) {
                 console.log("Form is valid! Proceeding with signup...");
                 registerMutation.mutate(userdata); // Use mutate to trigger the signup API call
+                console.log("local storage",await AsyncStorage.getItem(verificationToken));
+
             }
         }
     };

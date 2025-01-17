@@ -9,6 +9,8 @@ import LoadingIndicator from '../components/LoadingIndicator';
 import * as WebBrowser from 'expo-web-browser';
 import * as AuthSession from 'expo-auth-session';
 import BASE_URL from '../config/requiredIP';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import { userToken } from '../constants/Token';
 
 WebBrowser.maybeCompleteAuthSession();
 
@@ -19,7 +21,7 @@ const Login = ({ navigation }) => {
     const [emailError, setEmailError] = useState('');
     const [loading, setLoading] = useState(false); // Loading state
 
-    const GOOGLE_CLIENT_ID = 'YOUR_GOOGLE_CLIENT_ID.apps.googleusercontent.com'; // Replace with your client ID
+    const GOOGLE_CLIENT_ID = '484205526182-lhdpnunqris1m4bk7hi8ndpa8alr94sd.apps.googleusercontent.com'; // Replace with your client ID
 
     const [request, response, promptAsync] = AuthSession.useAuthRequest(
         {
@@ -89,13 +91,20 @@ const Login = ({ navigation }) => {
             });
 
             if (response.data.success) {
+                console.log(response.data.data.accessToken); // Console the token
                 Alert.alert("Success", "Login Successful!");
+                await AsyncStorage.setItem(userToken, response.data.data.accessToken); // Store token in async storage
                 setLoading(false); // Hide spinner
                 navigation.navigate('Home');
-            }
-        } catch (error) {
-            setLoading(false); // Hide spinner
-            Alert.alert("Error", "Invalid credentials");
+            }else{
+                setLoading(false); // Hide spinner
+                Alert.alert("Error", "Invalid credentials");}
+        } 
+        catch (error) {
+            // setLoading(false); // Hide spinner
+            // Alert.alert("Error", "Invalid credentials");
+            console.error('Login error:', error);
+            Alert.alert("Error", "Syster error. Please try again.");
         }
     };
 
@@ -194,7 +203,7 @@ const Login = ({ navigation }) => {
                         {/* Google Login Button */}
                         <TouchableOpacity
                             className="bg-google w-full py-3 rounded-lg flex-row items-center mb-3 border border-gray-400"
-                            onPress={() => promptAsync()}
+                            onPress={() => handleGoogleLogin()}
                         >
                             <View className="w-1/6 flex items-center">
                                 <Image source={googleLogo} style={{ width: 30, height: 30 }} />
