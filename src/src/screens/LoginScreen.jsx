@@ -5,7 +5,7 @@ import googleLogo from '../Images/google.png';
 import logo from '../Images/logo.png';
 import axios from 'axios';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import LoadingIndicator from '../components/LoadingIndicator'; 
+import LoadingIndicator from '../components/LoadingIndicator';
 import * as WebBrowser from 'expo-web-browser';
 import * as AuthSession from 'expo-auth-session';
 import BASE_URL from '../config/requiredIP';
@@ -95,11 +95,12 @@ const Login = ({ navigation }) => {
                 Alert.alert("Success", "Login Successful!");
                 await AsyncStorage.setItem(userToken, response.data.data.accessToken); // Store token in async storage
                 setLoading(false); // Hide spinner
-                navigation.navigate('Home');
-            }else{
+                navigation.navigate('HomeScreen');
+            } else {
                 setLoading(false); // Hide spinner
-                Alert.alert("Error", "Invalid credentials");}
-        } 
+                Alert.alert("Error", "Invalid credentials");
+            }
+        }
         catch (error) {
             // setLoading(false); // Hide spinner
             // Alert.alert("Error", "Invalid credentials");
@@ -127,8 +128,8 @@ const Login = ({ navigation }) => {
                         backgroundColor: 'rgba(0, 0, 0, 0.5)',
                         zIndex: 10,
                     }}
-                >       
-                <LoadingIndicator />
+                >
+                    <LoadingIndicator />
                 </View>
             )}
 
@@ -152,6 +153,7 @@ const Login = ({ navigation }) => {
                             <TextInput
                                 placeholder="Enter Your Email"
                                 className="border border-borders rounded-lg w-full py-3 px-4"
+                                style={{ height: 50 }}
                                 value={email}
                                 onChangeText={validateEmail}
                             />
@@ -159,21 +161,23 @@ const Login = ({ navigation }) => {
                         </View>
 
                         {/* Password Input with Show/Hide */}
-                        <View className="border border-borders rounded-lg w-full py-1 px-4 mb-3 flex-row items-center">
-                            <TextInput
-                                placeholder="Enter Your Password"
-                                className="flex-1"
-                                secureTextEntry={!showPassword}
-                                value={password}
-                                onChangeText={setPassword}
-                            />
-                            <TouchableOpacity onPress={() => setShowPassword(!showPassword)}>
-                                <FontAwesome
-                                    name={showPassword ? 'eye' : 'eye-slash'}
-                                    size={24}
-                                    color="gray"
+                        <View className="mb-3 w-full">
+                            <View className="border border-borders rounded-lg w-full flex-row items-center px-4">
+                                <TextInput
+                                    placeholder="Enter Your Password"
+                                    style={{ flex: 1, height: 50 }}
+                                    secureTextEntry={!showPassword}
+                                    value={password}
+                                    onChangeText={setPassword}
                                 />
-                            </TouchableOpacity>
+                                <TouchableOpacity onPress={() => setShowPassword(!showPassword)}>
+                                    <FontAwesome
+                                        name={showPassword ? 'eye' : 'eye-slash'}
+                                        size={24}
+                                        color="gray"
+                                    />
+                                </TouchableOpacity>
+                            </View>
                         </View>
 
                         {/* Forgot Password */}

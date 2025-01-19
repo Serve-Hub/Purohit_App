@@ -130,7 +130,7 @@ const Signup = ({ navigation }) => {
     };
 
     return (
-        <SafeAreaView className="flex-1 bg-background">
+        <SafeAreaView className="flex-1 bg-white">
             <KeyboardAvoidingView
                 className="flex-1"
             >
@@ -138,7 +138,7 @@ const Signup = ({ navigation }) => {
                     contentContainerStyle={{ flexGrow: 1, justifyContent: 'center' }}
                     showsVerticalScrollIndicator={false}
                 >
-                    <View className="flex-1 items-center justify-center bg-background px-4">
+                    <View className="flex-1 items-center justify-center bg-white px-4">
                         <View className="flex-row items-center justify-center mb-10">
                             <Image
                                 source={logo}

@@ -21,9 +21,9 @@ const Navigation = ({ navigation, children }) => {
 
   const navItems = [
     { name: 'Home', icon: 'home-outline' },
-    { name: 'Services', icon: 'cube-outline' },
     { name: 'Calendar', icon: 'calendar-outline' },
     { name: 'Inbox', icon: 'mail-outline' },
+    { name: 'Notification', icon: 'notifications-outline' },
     { name: 'Profile', icon: 'person-outline' },
   ];
 

@@ -24,7 +24,7 @@ import { userToken, verificationToken } from '../constants/Token';
 
 const initialLayout = { width: Dimensions.get('window').width };
 
-const KYCForm = () => {
+const KYCForm = ({ navigation}) => {
   const [formData, setFormData] = useState({
     personalInfo: {
       // name: "",
@@ -275,7 +275,8 @@ const KYCForm = () => {
   
       // Handle the response
       if (response.data?.success) {
-        Alert.alert("Success", "Purohit added successfully!");
+        Alert.alert("Success", "Purohit added successfully! Please wait to be verified by the system.");
+        navigation.navigate("HomeScreen");
       } else {
         Alert.alert("Error", response.data?.message || "Something went wrong!");
       }
@@ -670,6 +671,7 @@ const styles = StyleSheet.create({
     backgroundColor: "#f4f1e9", // Matches the tab content background color
   },
   scene: {
+    // bottom:20,
     flex: 1,
     padding: 20,
     backgroundColor: "#f4f1e9", // Soft religious beige
@@ -740,11 +742,11 @@ const styles = StyleSheet.create({
     paddingHorizontal: 24,
     borderRadius: 8,
     marginVertical: 8,
-    marginBottom: 16, // Add some space at the bottom
+    marginBottom: 40, // Add margin to raise the button slightly above the bottom
     alignItems: "center",
     justifyContent: "center",
   },
-
+  
   buttonText: {
     color: "#ffffff", // White text color
     fontSize: 16,

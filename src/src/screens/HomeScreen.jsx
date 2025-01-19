@@ -105,12 +105,18 @@ const HomeScreen = ({ navigation }) => {
                       <FlatList
                         data={categories}
                         keyExtractor={(item) => item._id}
+
                         renderItem={({ item }) => (
                           <TouchableOpacity
                             className="flex-row items-center mb-4"
                             onPress={() => {
-                              // Handle item press (e.g., navigate to a new screen or perform an action)
-                              console.log(`Category pressed: ${item.pujaName}`);
+                              console.log(`Category clicked: ${item.pujaName} with basefee of ${item.baseFare}`);
+                              navigation.navigate("BookingForm", {
+                                pujaId: item._id,
+                                puja: item.pujaName,
+                                baseFee: item.baseFare,
+                              });
+                              setDropdownVisible(false);
                             }}
                           >
                             <Image
@@ -121,6 +127,7 @@ const HomeScreen = ({ navigation }) => {
                               <Text className="text-lg font-bold">{item.pujaName}</Text>
                               <Text className="text-sm text-gray-500">{item.category}</Text>
                               <Text className="text-sm text-gray-400">{item.description}</Text>
+                              {/* <Text className="text-sm text-gray-400">{item.baseFare}</Text> */}
                             </View>
                           </TouchableOpacity>
                         )}
